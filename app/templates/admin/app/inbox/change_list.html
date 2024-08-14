@@ -1,0 +1,76 @@
+{% extends 'admin/change_list.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Настройки почтового ящика</h1>
+
+<!-- Форма для ввода данных -->
+<form id="mailboxForm">
+    <div>
+        <label for="emailLogin">Логин:</label>
+        <input type="text" id="emailLogin" name="email" placeholder="Введите логин" required>
+    </div>
+    <div>
+        <label for="emailPassword">Пароль:</label>
+        <input type="password" id="emailPassword" name="password" placeholder="Введите пароль" required>
+    </div>
+    <div>
+        <label for="emailType">Тип почтового ящика:</label>
+        <select id="emailType" name="service" required>
+            <option value="yandex">Яндекс</option>
+            <option value="gmail">Gmail</option>
+            <option value="mail">Mail</option>
+        </select>
+    </div>
+    <button type="submit">Сохранить</button>
+</form>
+
+<!-- Подключаем кастомные стили -->
+<link rel="stylesheet" href="{% static 'css/inbox.css' %}">
+
+<!-- Подключаем jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Скрипт для обработки формы -->
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: "{% url 'get_mailbox_settings' %}",
+            method: "GET",
+            success: function(data) {
+                $('#emailLogin').val(data.email);
+                $('#emailPassword').val(data.password);
+                $('#emailType').val(data.service);
+            },
+            error: function(xhr, status, error) {
+                console.error("Ошибка загрузки данных: ", error);
+            }
+        });
+
+        $('#mailboxForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let emailLogin = $('#emailLogin').val();
+            let emailPassword = $('#emailPassword').val();
+            let emailType = $('#emailType').val();
+
+            $.ajax({
+                url: "{% url 'save_mailbox_settings' %}",
+                method: "POST",
+                data: {
+                    'email': emailLogin,
+                    'password': emailPassword,
+                    'service': emailType,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    alert(response.message);
+                },
+                error: function(xhr, status, error) {
+                    alert("Ошибка сохранения данных.");
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+#messagesTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#messagesTable th, #messagesTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#messagesTable th {
+    background-color: #f4f4f4;
+    text-align: left;
+}
+
+#progressContainer {
+    margin-bottom: 20px;
+}
+
+#progressBar {
+    height: 20px;
+    background-color: green;
+    width: 0%;
+}
+
+#progressText {
+    margin-bottom: 5px;
+}
+
+form#importForm {
+    margin-bottom: 20px;
+}

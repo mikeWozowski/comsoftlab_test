@@ -1,0 +1,32 @@
+form#mailboxForm {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: 20px auto;
+}
+
+form#mailboxForm div {
+    margin-bottom: 15px;
+}
+
+form#mailboxForm label {
+    font-weight: bold;
+}
+
+form#mailboxForm input, form#mailboxForm select {
+    padding: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+form#mailboxForm button {
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+form#mailboxForm button:hover {
+    background-color: #45a049;
+}

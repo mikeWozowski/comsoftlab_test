@@ -1,0 +1,112 @@
+{% extends 'admin/change_list.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Сообщения</h1>
+
+<!-- Прогресс-бар для отображения состояния импорта -->
+<div id="progressContainer" style="display: none;">
+    <p id="progressText">Чтение сообщений...</p>
+    <div id="progressBar" style="width: 0%; height: 20px; background-color: green;"></div>
+</div>
+
+<!-- Таблица для отображения списка сообщений -->
+<table id="messagesTable">
+    <thead>
+        <tr>
+            <th>Тема</th>
+            <th>Дата отправки</th>
+            <th>Дата получения</th>
+            <th>Описание</th>
+            <th>Прикреплённые файлы</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+        <tr>
+            <td>{{ message.subject }}</td>
+            <td>{{ message.sent_date }}</td>
+            <td>{{ message.received_date }}</td>
+            <td>{{ message.body }}</td>
+            <td>
+                {% for attachment in message.attachments.all %}
+                <a href="{{ attachment.file.url }}">{{ attachment.file.name }}</a><br>
+                {% empty %}
+                Нет вложений
+                {% endfor %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">Нет сообщений</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Подключаем кастомные стили -->
+<link rel="stylesheet" href="{% static 'css/messages.css' %}">
+
+<!-- Подключаем jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Подключаем WebSocket библиотеку -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@6.1.1/dist/stomp.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+
+<!-- Скрипт для обработки прогресса и отправки данных через WebSocket -->
+<script>
+    $(document).ready(function() {
+
+    const socket = new WebSocket('ws://' + window.location.host + '/ws/emails/');
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log('Received data:', data); // Для отладки
+
+        if (data.status === 'Progress') {
+            $('#progressContainer').show();
+            $('#progressBar').css('width', data.progress + '%');
+            $('#progressText').text('Получение сообщений: ' + data.progress + '%');
+        } else if (data.status === 'Completed') {
+            $('#progressText').text('Импорт завершён!');
+            $('#progressContainer').hide();
+        } else if (data.status === 'NewMessage') {
+            addMessageToTable(data.message);
+        }
+    };
+
+    socket.onopen = function() {
+        socket.send(JSON.stringify({
+            'command': 'start_import'
+        }));
+        $('#progressText').text('Чтение сообщений...');
+        $('#progressContainer').show();
+    };
+
+    // Функция для добавления сообщения в таблицу
+    function addMessageToTable(message) {
+        $('#messagesTable tbody tr:contains("Нет сообщений")').remove();
+
+        let row = `
+            <tr>
+                <td>${message.subject}</td>
+                <td>${message.sent_date}</td>
+                <td>${message.received_date || 'Не получено'}</td>
+                <td>${message.body}</td>
+                <td>`;
+
+        if (message.attachments && message.attachments.length > 0) {
+            message.attachments.forEach(function(attachment) {
+                row += `<a href="${attachment.file_url}">${attachment.file_name}</a><br>`;
+            });
+        } else {
+            row += 'Нет вложений';
+        }
+
+        row += `</td></tr>`;
+        $('#messagesTable tbody').append(row);
+    }
+});
+</script>
+{% endblock %}
